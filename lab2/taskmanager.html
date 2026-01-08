@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Board with Working Delete</title>
+    <style>
+        :root {
+            --todo: #000000;
+            --done: #faf8ae;
+            --danger: #e74c3c;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+        
+       
+        .controls { text-align: center; margin-bottom: 30px; }
+        input { padding: 12px; width: 250px; border: 2px solid #ddd; border-radius: 6px; outline: none; }
+        input:focus { border-color: #3498db; }
+        #addBtn { padding: 12px 24px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    
+        .board { display: flex; gap: 20px; justify-content: center; }
+        .column { 
+            background: #ebedf0; width: 280px; min-height: 450px; 
+            border-radius: 10px; padding: 15px; border: 1px solid #ccc;
+        }
+        h2 { text-align: center; color: #444; margin-top: 0; }
+        
+     
+        .task-card {
+            background: white; padding: 15px; margin-bottom: 15px;
+            border-radius: 8px; cursor: grab; position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, opacity 0.3s;
+        }
+        .task-card:active { cursor: grabbing; }
+        #todo{color: var(--todo);}
+
+       
+        .delete-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: #ff7675; color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%;
+            cursor: pointer; font-size: 14px; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover { background: var(--danger); }
+
+        .task-name { display: block; font-weight: bold; margin-bottom: 5px; padding-right: 20px; }
+        .task-date { font-size: 0.75rem; color: #7f8c8d; }
+        .status-msg { font-size: 0.75rem; color: #27ae60; font-weight: bold; margin-top: 8px; display: none; }
+        
+      `
+        .task-card.done { background-color: var(--done); }
+        .task-card.done .status-msg { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <input type="text" id="taskInput" placeholder="Enter a new task...">
+    <button id="addBtn" onclick="addTask()">Add Task</button>
+</div>
+
+<div class="board">
+    <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h2>To Do</h2>
+    </div>
+    <div class="column" id="inprogress" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h2>In Progress</h2>
+    </div>
+    <div class="column" id="completed" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h2>Completed</h2>
+    </div>
+</div>
+
+<script>
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        const val = input.value.trim();
+        
+        if (!val) return;
+
+        const taskId = 'task-' + Date.now();
+        const date = new Date().toLocaleDateString();
+
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.id = taskId;
+        card.draggable = true;
+        card.ondragstart = drag;
+
+        card.innerHTML = `
+            <button class="delete-btn" title="Delete Task" onclick="deleteTask('${taskId}')">×</button>
+            <span class="task-name">${val}</span>
+            <span class="task-date">Created: ${date}</span>
+            <div class="status-msg">Task Completed Successfully</div>
+        `;
+
+        document.getElementById('todo').appendChild(card);
+        input.value = "";
+    }
+
+    
+    function deleteTask(id) {
+        const element = document.getElementById(id);
+        if (element) {
+
+            element.style.opacity = '0';
+            element.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                element.remove();
+            }, 300); 
+        }
+    }
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("textId", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("textId");
+        const draggedElement = document.getElementById(data);
+        
+        const dropZone = ev.target.closest('.column');
+        
+        if (dropZone && draggedElement) {
+            dropZone.appendChild(draggedElement);
+
+            if (dropZone.id === 'completed') {
+                draggedElement.classList.add('done');
+            } else {
+                draggedElement.classList.remove('done');
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

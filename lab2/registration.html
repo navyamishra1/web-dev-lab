@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management - Fixed Delete</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .box { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { padding: 10px; cursor: pointer; border: none; border-radius: 4px; }
+        .add-btn { background: #2563eb; color: white; width: 100%; }
+        .del-btn { background: #ff4d4d; color: white; padding: 5px 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Register</h2>
+    <form id="userForm">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="number" id="mobile" placeholder="Mobile (10 digits)" required>
+        <input type="password" id="pass" placeholder="Password (Min 6 chars)" required>
+        <button type="submit" class="add-btn">Add User</button>
+    </form>
+    
+    <hr>
+    <button onclick="clearAll()" style="background:#666; color:white;">Clear All Storage</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const userForm = document.getElementById('userForm');
+    const tableBody = document.getElementById('tableBody');
+
+    // 1. Initial Load
+    window.onload = displayUsers;
+
+    // 2. Add User Logic
+    userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const user = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            mobile: document.getElementById('mobile').value,
+            pass: document.getElementById('pass').value
+        };
+
+        // Validation
+        if(user.mobile.length !== 10) return alert("Mobile must be 10 digits");
+        if(user.pass.length < 6) return alert("Password too short");
+
+        let users = JSON.parse(localStorage.getItem('myUsers')) || [];
+
+        // Duplicate Check
+        if(users.some(u => u.email === user.email)) return alert("Email exists!");
+
+        users.push(user);
+        localStorage.setItem('myUsers', JSON.stringify(users));
+        
+        userForm.reset();
+        displayUsers();
+    });
+
+    // 3. DISPLAY FUNCTION (The core of the fix)
+    function displayUsers() {
+        const users = JSON.parse(localStorage.getItem('myUsers')) || [];
+        tableBody.innerHTML = ""; // Clear current table
+
+        users.forEach((user, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>
+                    <button class="del-btn" onclick="deleteUser(${index})">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // 4. THE DELETE FUNCTION (Must be global)
+    function deleteUser(index) {
+        let users = JSON.parse(localStorage.getItem('myUsers')) || [];
+        
+        // Remove the specific user by their index in the array
+        users.splice(index, 1); 
+        
+        // Save the updated array back to localStorage
+        localStorage.setItem('myUsers', JSON.stringify(users));
+        
+        // Refresh the table
+        displayUsers();
+    }
+
+    function clearAll() {
+        if(confirm("Clear everything?")) {
+            localStorage.clear();
+            displayUsers();
+        }
+    }
+</script>
+
+</body>
+</html>

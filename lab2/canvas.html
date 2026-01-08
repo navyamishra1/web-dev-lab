@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5 Canvas Demo</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Canvas Drawing</h1>
+    <canvas id="myCanvas" width="500" height="300"></canvas>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#4CAF50'; 
+        ctx.fillRect(50, 50, 150, 80); 
+
+        ctx.beginPath();
+        ctx.arc(350, 100, 50, 0, Math.PI * 2); 
+        ctx.fillStyle = '#2196F3';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(50, 200);   
+        ctx.lineTo(450, 200);  
+        ctx.strokeStyle = '#FF5722'; 
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        ctx.font = 'bold 30px Arial';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        ctx.fillText('HTML5 Canvas', canvas.width / 2, 260); // (text, x, y)
+    </script>
+
+</body>
+</html>

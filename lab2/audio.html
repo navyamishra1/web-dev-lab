@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimedia Hub</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgb(255, 249, 252);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        section {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ababab;
+        }
+        h2 {
+            color: #2c3e50;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+        audio {
+            width: 100%;
+        }
+        .time-display {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.1rem;
+            color: #ae0606;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <section>
+        <h2>Audio Player</h2>
+        <audio id="myAudio" controls>
+            <source src="music.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <div class="time-display">Current Time: <span id="audioTime">0:00</span></div>
+    </section>
+
+    <section>
+        <h2>Video Player</h2>
+        <video id="myVideo" controls>
+            <source src="video.mp4" type="video/mp4">
+            Your browser does not support the video element.
+        </video>
+        <div class="time-display">Current Time: <span id="videoTime">0:00</span></div>
+    </section>
+</div>
+
+<script>
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return mins + ":" + (secs < 10 ? '0' : '') + secs;
+    }
+//Audio
+    const audio = document.getElementById('myAudio');
+    const audioTimeDisplay = document.getElementById('audioTime');
+
+    audio.ontimeupdate = function() {
+        audioTimeDisplay.innerText = formatTime(audio.currentTime);
+    };
+// Video
+    const video = document.getElementById('myVideo');
+    const videoTimeDisplay = document.getElementById('videoTime');
+
+    video.ontimeupdate = function() {
+        videoTimeDisplay.innerText = formatTime(video.currentTime);
+    };
+</script>
+
+</body>
+</html>
