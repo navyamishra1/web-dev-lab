@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adaptive Registration</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(120deg,#89f7fe,#66a6ff);
+}
+.container {
+  width: 450px;
+  background: #fff;
+  padding: 20px;
+  margin: 40px auto;
+  border-radius: 10px;
+}
+input, select {
+  width: 90%;
+  padding: 10px;
+  margin-top: 8px;
+}
+.error {
+  border: 2px solid red;
+}
+small {
+  color: red;
+}
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 10px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+}
+.hidden {
+  display: none;
+}
+#role{
+    width: 95%;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Register</h2>
+
+<form id="regForm">
+  <input type="text" id="name" placeholder="Name">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <input type="password" id="confirm" placeholder="Confirm Password">
+  <input type="number" id="age" placeholder="Age">
+
+  <select id="role">
+    <option value="">Select Role</option>
+    <option>Student</option>
+    <option>Teacher</option>
+    <option>Admin</option>
+  </select>
+
+  <input type="text" id="skills" class="hidden" placeholder="Skills (comma separated)">
+  <small id="msg"></small>
+
+  <button type="submit">Submit</button>
+</form>
+</div>
+
+<script>
+const role = document.getElementById("role");
+const skills = document.getElementById("skills");
+const msg = document.getElementById("msg");
+
+role.addEventListener("change", () => {
+  skills.classList.toggle("hidden", role.value === "Student");
+});
+
+function validateEmail(email) {
+  return email.endsWith("@gmail.com") || email.endsWith("@edu.in");
+}
+
+function strongPassword(pass, role) {
+  if (role === "Admin") return pass.length >= 8 && /[A-Z]/.test(pass);
+  return pass.length >= 6;
+}
+
+document.getElementById("regForm").addEventListener("submit", e => {
+  e.preventDefault();
+  msg.textContent = "";
+
+  let email = document.getElementById("email").value;
+  let pass = password.value;
+  let conf = confirm.value;
+
+  if (!validateEmail(email)) {
+    msg.textContent = "Invalid email domain";
+    return;
+  }
+  if (!strongPassword(pass, role.value)) {
+    msg.textContent = "Weak password for selected role";
+    return;
+  }
+  if (pass !== conf) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+  alert("Registration Successful 🎉");
+});
+</script>
+</body>
+</html>

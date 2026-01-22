@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Shopping Cart</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 40px; color: #333; }
+        .cart-container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        .product-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: 0.2s; }
+        .btn-add { background: #007bff; color: white; padding: 12px; }
+        .btn-add:hover { background: #0056b3; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .item-info { flex-grow: 1; }
+        .item-category { font-size: 0.75rem; color: #666; display: block; }
+        
+        .qty-input { width: 45px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; margin: 0 10px; }
+        .btn-del { background: #ff4d4d; color: white; padding: 5px 10px; }
+
+        .discount-section { margin-top: 20px; border-top: 2px solid #eee; padding-top: 15px; }
+        .coupon-box { display: flex; gap: 5px; margin-bottom: 15px; }
+        .coupon-box input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        
+        .summary { background: #f8f9fa; padding: 20px; border-radius: 10px; line-height: 1.8; }
+        .highlight { color: #28a745; font-weight: bold; }
+        .total-row { font-size: 1.5rem; border-top: 1px solid #ddd; margin-top: 10px; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="cart-container">
+    <h2>Intelligent Shopping Cart</h2>
+    
+    <div class="product-btns">
+        <button class="btn-add" onclick="addItem('MacBook', 1200, 'Tech')">Add Laptop (Tech)</button>
+        <button class="btn-add" onclick="addItem('Chemistry Book', 50, 'Education')">Add Book (Education)</button>
+    </div>
+
+    <div id="cart-display">
+        </div>
+
+    <div class="discount-section">
+        <div class="coupon-box">
+            <input type="text" id="coupon-code" placeholder="6-char code (e.g. FLASH5)">
+            <button onclick="applyCoupon()" style="background:#333; color:white; padding:0 15px;">Apply</button>
+        </div>
+        
+        <div class="summary">
+            <div>Subtotal: $<span id="sub-total">0.00</span></div>
+            <div>Category/Bulk Savings: <span id="logic-discounts" class="highlight">-$0.00</span></div>
+            <div>Time-of-Day Bonus: <span id="time-discount" class="highlight">-$0.00</span></div>
+            <div class="total-row">Total: $<span id="final-total">0.00</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Array of products
+    let cart = [];
+    let appliedCoupon = null;
+
+    // 2. Add / Update / Remove Logic
+    function addItem(name, price, category) {
+        const existing = cart.find(i => i.name === name);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ name, price, category, qty: 1 });
+        }
+        updateUI();
+    }
+
+    function changeQty(index, newQty) {
+        if (newQty < 1) return removeItem(index);
+        cart[index].qty = parseInt(newQty);
+        updateUI();
+    }
+
+    function removeItem(index) {
+        cart.splice(index, 1);
+        updateUI();
+    }
+
+    // 3. String validation for Coupons
+    function applyCoupon() {
+        const input = document.getElementById('coupon-code').value.trim().toUpperCase();
+        
+        // Requirement: String method to validate length and content
+        const isValidFormat = input.length === 6 && /^[A-Z0-9]+$/.test(input);
+
+        if (!isValidFormat) {
+            alert("Coupon must be 6 alphanumeric characters!");
+            return;
+        }
+
+        if (input === "FLASH5") {
+            appliedCoupon = 5.00; // Flat $5 off
+            alert("Coupon Applied: $5 discount!");
+        } else {
+            alert("Invalid Coupon Code.");
+            appliedCoupon = null;
+        }
+        updateUI();
+    }
+
+    // 4. Multi-layered Discount Engine
+    function updateUI() {
+        const display = document.getElementById('cart-display');
+        display.innerHTML = cart.length === 0 ? '<p>Your cart is empty.</p>' : '';
+        
+        let subtotal = 0;
+        let ruleSavings = 0;
+
+        cart.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            subtotal += itemTotal;
+
+            // --- Requirement: Category-based discount ---
+            // Education items get 20% off
+            if (item.category === 'Education') {
+                ruleSavings += (itemTotal * 0.20);
+            }
+
+            // --- Requirement: Bulk discount ---
+            // If you buy 3 or more of any item, get an extra 10% off that item
+            if (item.qty >= 3) {
+                ruleSavings += (itemTotal * 0.10);
+            }
+
+            display.innerHTML += `
+                <div class="cart-item">
+                    <div class="item-info">
+                        <strong>${item.name}</strong>
+                        <span class="item-category">${item.category} | $${item.price} each</span>
+                    </div>
+                    <div>
+                        <input type="number" class="qty-input" value="${item.qty}" onchange="changeQty(${index}, this.value)">
+                        <button class="btn-del" onclick="removeItem(${index})">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        // --- Requirement: Time of Day discount ---
+        let timeSavings = 0;
+        const currentHour = new Date().getHours();
+        
+        // "Happy Hour" Discount: 10% off total if shopping between 6 PM (18) and 9 PM (21)
+        if (currentHour >= 18 && currentHour <= 21) {
+            timeSavings = (subtotal - ruleSavings) * 0.10;
+        }
+
+        // Apply coupon if valid
+        const finalCoupon = appliedCoupon ? appliedCoupon : 0;
+
+        // Final Calculations
+        const finalTotal = subtotal - ruleSavings - timeSavings - finalCoupon;
+
+        // Update DOM real-time
+        document.getElementById('sub-total').innerText = subtotal.toFixed(2);
+        document.getElementById('logic-discounts').innerText = `-$${ruleSavings.toFixed(2)}`;
+        document.getElementById('time-discount').innerText = `-$${timeSavings.toFixed(2)}`;
+        document.getElementById('final-total').innerText = Math.max(0, finalTotal).toFixed(2);
+    }
+</script>
+
+</body>
+</html>

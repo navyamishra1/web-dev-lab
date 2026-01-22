@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Step-by-Step Form</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 50px; }
+        .form-card { background: white; padding: 30px; border-radius: 10px; width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Progress Bar */
+        .progress-bg { background: #eee; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        #progress-fill { background: #4caf50; height: 100%; width: 25%; transition: 0.3s; }
+        
+        /* Form Sections */
+        .step { display: none; }
+        .step.active { display: block; }
+        
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
+        .error { color: red; font-size: 12px; margin-top: 5px; height: 15px; }
+        
+        .btns { display: flex; justify-content: space-between; margin-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; }
+        .btn-next { background: #4a90e2; color: white; }
+        .btn-prev { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <div class="progress-bg">
+        <div id="progress-fill"></div>
+    </div>
+
+    <form id="workflowForm">
+        <div class="step active" id="step0">
+            <h3>Stage 1: Identity</h3>
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="name" placeholder="John Doe">
+                <div class="error" id="err-name"></div>
+            </div>
+        </div>
+
+        <div class="step" id="step1">
+            <h3>Stage 2: Contact</h3>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="john@example.com">
+                <div class="error" id="err-email"></div>
+            </div>
+        </div>
+
+        <div class="step" id="step2">
+            <h3>Stage 3: Skills</h3>
+            <div class="input-group">
+                <label>Primary Skill</label>
+                <input type="text" id="skill" placeholder="e.g. JavaScript">
+                <div class="error" id="err-skill"></div>
+            </div>
+        </div>
+
+        <div class="step" id="step3">
+            <h3>Stage 4: Finish</h3>
+            <p>Everything looks good! Ready to submit?</p>
+            <div class="error" id="err-final"></div>
+        </div>
+
+        <div class="btns">
+            <button type="button" class="btn-prev" id="prevBtn" onclick="move(-1)" style="visibility: hidden;">Back</button>
+            <button type="button" class="btn-next" id="nextBtn" onclick="move(1)">Next</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 1. Temporary Storage (JavaScript Variables)
+    let currentStep = 0;
+    const formData = {};
+
+    // 2. Navigation Function
+    function move(stepChange) {
+        if (stepChange === 1 && !validate()) return; // Agay janay se pehle check
+
+        const steps = document.querySelectorAll('.step');
+        steps[currentStep].classList.remove('active'); // Current hide karo
+        
+        currentStep += stepChange;
+        
+        steps[currentStep].classList.add('active'); // Naya show karo
+        updateUI();
+    }
+
+    // 3. Validation Logic for Each Stage
+    function validate() {
+        let isValid = true;
+        document.querySelectorAll('.error').forEach(e => e.innerText = ""); // Reset errors
+
+        if (currentStep === 0) {
+            const name = document.getElementById('name').value;
+            if (name.length < 3) {
+                document.getElementById('err-name').innerText = "Name is too short!";
+                isValid = false;
+            } else {
+                formData.name = name; // Store temp
+            }
+        }
+
+        if (currentStep === 1) {
+            const email = document.getElementById('email').value;
+            if (!email.includes('@')) {
+                document.getElementById('err-email').innerText = "Invalid email!";
+                isValid = false;
+            } else {
+                formData.email = email;
+            }
+        }
+
+        if (currentStep === 2) {
+            const skill = document.getElementById('skill').value;
+            if (!skill) {
+                document.getElementById('err-skill').innerText = "Please enter a skill!";
+                isValid = false;
+            } else {
+                formData.skill = skill;
+            }
+        }
+
+        return isValid;
+    }
+
+    // 4. Update Progress Bar & Buttons
+    function updateUI() {
+        // Progress Bar update
+        const progress = ((currentStep + 1) / 4) * 100;
+        document.getElementById('progress-fill').style.width = progress + "%";
+
+        // Back button hide/show
+        document.getElementById('prevBtn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+
+        // Next to Submit change
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentStep === 3) {
+            nextBtn.innerText = "Submit";
+            nextBtn.style.background = "#4caf50";
+            nextBtn.onclick = () => alert("Form Submitted! Data: " + JSON.stringify(formData));
+        } else {
+            nextBtn.innerText = "Next";
+            nextBtn.style.background = "#4a90e2";
+            nextBtn.onclick = () => move(1);
+        }
+    }
+</script>
+
+</body>
+</html>

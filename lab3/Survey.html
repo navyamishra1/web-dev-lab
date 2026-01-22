@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Survey Builder</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --error-color: #ff4d4d;
+            --bg-color: #f4f7f6;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); margin: 0; padding: 20px; }
+        
+        .container { 
+            max-width: 500px; 
+            margin: 40px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+
+        h2 { text-align: center; color: #333; margin-top: 0; }
+
+        .question-block { margin-bottom: 25px; }
+        .question-text { font-weight: 600; margin-bottom: 10px; display: block; color: #444; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .options-group { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .options-group label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        .error { color: var(--error-color); font-size: 0.85rem; margin-top: 5px; height: 18px; }
+
+        .btn-container { margin-top: 20px; }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #357abd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>User Survey</h2>
+    <form id="surveyForm"></form>
+    <div class="btn-container">
+        <button type="button" onclick="validateSurvey()">Submit Survey</button>
+    </div>
+</div>
+
+<script>
+const questions = [
+    { id: "name", q: "Your Name", type: "text", required: true },
+    { id: "gender", q: "Gender", type: "radio", options: ["Male", "Female", "Other"], required: true },
+    { id: "skills", q: "Skills", type: "checkbox", options: ["JS", "HTML", "CSS", "Python"], min: 1 }
+];
+
+const form = document.getElementById("surveyForm");
+
+// Render Questions
+questions.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = "question-block";
+    
+    let html = `<label class="question-text">${item.q}${item.required || item.min ? ' *' : ''}</label>`;
+
+    if (item.type === "text") {
+        html += `<input type="text" name="${item.id}" placeholder="Enter your answer...">`;
+    } else {
+        html += `<div class="options-group">`;
+        item.options.forEach(opt => {
+            html += `
+                <label>
+                    <input type="${item.type}" name="${item.id}" value="${opt}"> ${opt}
+                </label>`;
+        });
+        html += `</div>`;
+    }
+
+    html += `<div class="error" id="err-${item.id}"></div>`;
+    div.innerHTML = html;
+    form.appendChild(div);
+});
+
+function validateSurvey() {
+    let isValid = true;
+
+    questions.forEach((q) => {
+        const errorEl = document.getElementById(`err-${q.id}`);
+        errorEl.textContent = ""; // Reset error
+        
+        const inputs = document.getElementsByName(q.id);
+        
+        if (q.type === "text") {
+            if (q.required && !inputs[0].value.trim()) {
+                errorEl.textContent = "This field is required";
+                isValid = false;
+            }
+        } 
+        else if (q.type === "radio") {
+            const checked = Array.from(inputs).some(input => input.checked);
+            if (q.required && !checked) {
+                errorEl.textContent = "Please select an option";
+                isValid = false;
+            }
+        } 
+        else if (q.type === "checkbox") {
+            const checkedCount = Array.from(inputs).filter(input => input.checked).length;
+            if (q.min && checkedCount < q.min) {
+                errorEl.textContent = `Select at least ${q.min} skill(s)`;
+                isValid = false;
+            }
+        }
+    });
+
+    if (isValid) {
+        alert("Survey Submitted Successfully! ✅");
+        // form.submit(); // Uncomment to actually submit
+    }
+}
+</script>
+
+</body>
+</html>

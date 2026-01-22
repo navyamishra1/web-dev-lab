@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Activity Monitor</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #333;
+            --accent: #6366f1;
+            --warning: #ef4444;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
+        .dashboard { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        
+        /* Interaction Area */
+        .interaction-zone { background: var(--card); padding: 20px; border-radius: 12px; border: 2px dashed #ccc; text-align: center; }
+        
+        /* Log Area */
+        .log-container { background: #1e1e1e; color: #adbac7; padding: 15px; border-radius: 8px; height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; }
+        .log-entry.warning { color: var(--warning); font-weight: bold; }
+
+        /* Controls */
+        .controls { display: flex; gap: 10px; margin-top: 20px; }
+        button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-export { background: var(--accent); color: white; }
+        .btn-reset { background: #e5e7eb; color: #374151; }
+        
+        .stats { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .alert-box { color: var(--warning); font-size: 0.9rem; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body id="app-root">
+
+<div class="dashboard">
+    <div class="left-panel">
+        <div class="interaction-zone" id="track-zone">
+            <h3>Interaction Zone</h3>
+            <p>Click here, type something, or switch focus</p>
+            <input type="text" id="testInput" placeholder="Type here...">
+        </div>
+
+        <div class="controls">
+            <button class="btn-export" onclick="exportLog()">Export Log</button>
+            <button class="btn-reset" onclick="resetLog()">Reset</button>
+        </div>
+
+        <div id="alertBox" class="alert-box">⚠️ Suspicious Activity: High click frequency detected!</div>
+    </div>
+
+    <div class="right-panel">
+        <div class="stats">
+            <h4>Live Stats</h4>
+            <p>Total Events: <span id="eventCount">0</span></p>
+            <p>Clicks: <span id="clickCount">0</span></p>
+        </div>
+        <h4>Activity Log</h4>
+        <div id="logDisplay" class="log-container"></div>
+    </div>
+</div>
+
+<script>
+    // 1. State Management
+    let activityLog = [];
+    const THRESHOLD_CLICKS = 10;
+    const TIME_WINDOW = 5000; // 5 seconds
+
+    const logDisplay = document.getElementById('logDisplay');
+    const eventCountEl = document.getElementById('eventCount');
+    const clickCountEl = document.getElementById('clickCount');
+    const alertBox = document.getElementById('alertBox');
+
+    // 2. Event Capturing vs Bubbling Example
+    // Logging at root (Capturing phase)
+    document.getElementById('app-root').addEventListener('click', () => {
+        addLog('Global Click', 'Capturing Root');
+    }, true);
+
+    // 3. Core Tracking Logic
+    function addLog(type, details) {
+        const entry = {
+            timestamp: new Date().toLocaleTimeString(),
+            type: type,
+            details: details,
+            id: Date.now()
+        };
+
+        activityLog.push(entry);
+        updateUI(entry);
+        checkSecurity();
+    }
+
+    function updateUI(entry) {
+        // Update Stats
+        eventCountEl.innerText = activityLog.length;
+        clickCountEl.innerText = activityLog.filter(l => l.type === 'click').length;
+
+        // Update Log List
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `[${entry.timestamp}] <strong>${entry.type}</strong>: ${entry.details}`;
+        logDisplay.prepend(div);
+    }
+
+    // 4. Specific Event Listeners
+    document.addEventListener('click', (e) => {
+        addLog('click', `Target: ${e.target.tagName} (ID: ${e.target.id || 'none'})`);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        addLog('keypress', `Key: ${e.key}`);
+    });
+
+    // Tracking focus changes on the input
+    const testInput = document.getElementById('testInput');
+    testInput.addEventListener('focus', () => addLog('focus', 'Input Gained Focus'));
+    testInput.addEventListener('blur', () => addLog('focus', 'Input Lost Focus'));
+
+    // 5. Threshold/Security Logic
+    function checkSecurity() {
+        const recentClicks = activityLog.filter(l => 
+            l.type === 'click' && (Date.now() - l.id < TIME_WINDOW)
+        );
+
+        if (recentClicks.length > THRESHOLD_CLICKS) {
+            alertBox.style.display = 'block';
+            const warningEntry = { timestamp: '!', type: 'WARNING', details: 'High Click Frequency!' };
+            const div = document.createElement('div');
+            div.className = 'log-entry warning';
+            div.innerHTML = `!!! SUSPICIOUS ACTIVITY DETECTED !!!`;
+            logDisplay.prepend(div);
+        }
+    }
+
+    // 6. Utility Functions
+    function resetLog() {
+        activityLog = [];
+        logDisplay.innerHTML = '';
+        eventCountEl.innerText = '0';
+        clickCountEl.innerText = '0';
+        alertBox.style.display = 'none';
+    }
+
+    function exportLog() {
+        const text = activityLog.map(l => `[${l.timestamp}] ${l.type.toUpperCase()}: ${l.details}`).join('\n');
+        const blob = new Blob([text], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = 'activity_log.txt';
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+    }
+</script>
+</body>
+</html>
