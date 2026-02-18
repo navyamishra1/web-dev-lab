@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+    <employee>
+        <id>E001</id>
+        <name>Sarah Connor</name>
+        <dept>Cyber Security</dept>
+        <salary>95000</salary>
+    </employee>
+    <employee>
+        <id>E002</id>
+        <name>Kyle Reese</name>
+        <dept>Operations</dept>
+        <salary>72000</salary>
+    </employee>
+</employees>

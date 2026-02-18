@@ -1,0 +1,5 @@
+[
+  { "id": "S101", "name": "Emma Watson", "course": "Biology", "marks": 88 },
+  { "id": "S102", "name": "Liam Neeson", "course": "Drama", "marks": 75 },
+  { "id": "S103", "name": "Bruce Wayne", "course": "Criminal Justice", "marks": 92 }
+]

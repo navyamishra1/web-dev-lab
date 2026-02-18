@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Record System (JSON CRUD)</title>
+    <style>
+        :root { --primary: #4f46e5; --success: #16a34a; --danger: #dc2626; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 850px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        .form-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 30px; background: #f1f5f9; padding: 20px; border-radius: 8px; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; transition: 0.2s; }
+        .btn-add { background: var(--primary); }
+        .btn-update { background: var(--success); display: none; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #1e293b; color: white; }
+        
+        .alert { padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; }
+        .error { background: #fee2e2; color: #b91c1c; }
+        .success { background: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎓 Student Record System</h2>
+    <div id="msg" class="alert"></div>
+
+    <div class="form-box">
+        <input type="text" id="stuId" placeholder="Student ID">
+        <input type="text" id="stuName" placeholder="Full Name">
+        <input type="text" id="stuCourse" placeholder="Course">
+        <input type="number" id="stuMarks" placeholder="Marks">
+        <button onclick="addStudent()" id="addBtn" class="btn btn-add">Add Student</button>
+        <button onclick="saveEdit()" id="updateBtn" class="btn btn-update">Save Changes</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="stuTable"></tbody>
+    </table>
+</div>
+
+<script>
+    let students = [];
+
+    // 1. READ: Load data using Fetch API
+    window.onload = async () => {
+        const localData = localStorage.getItem('crudStudents');
+        if (localData) {
+            students = JSON.parse(localData);
+            renderTable();
+        } else {
+            try {
+                const response = await fetch('students.json');
+                if (!response.ok) throw new Error("Could not find students.json");
+                
+                // Parse JSON response
+                students = await response.json();
+                syncData();
+            } catch (err) {
+                showMsg("JSON Error: " + err.message, "error");
+            }
+        }
+    };
+
+    // 2. CREATE: Add new student
+    function addStudent() {
+        const id = document.getElementById('stuId').value.trim();
+        const name = document.getElementById('stuName').value.trim();
+        const course = document.getElementById('stuCourse').value.trim();
+        const marks = document.getElementById('stuMarks').value.trim();
+
+        // VALIDATION
+        if (!id || !name || !course || !marks) return showMsg("Please fill all fields!", "error");
+        if (students.some(s => s.id === id)) return showMsg("ID must be unique!", "error");
+
+        students.push({ id, name, course, marks: parseInt(marks) });
+        syncData("Student added successfully!");
+        clearForm();
+    }
+
+    // 3. UPDATE: Load into form
+    function editStudent(id) {
+        const s = students.find(stu => stu.id === id);
+        document.getElementById('stuId').value = s.id;
+        document.getElementById('stuId').disabled = true;
+        document.getElementById('stuName').value = s.name;
+        document.getElementById('stuCourse').value = s.course;
+        document.getElementById('stuMarks').value = s.marks;
+
+        document.getElementById('addBtn').style.display = 'none';
+        document.getElementById('updateBtn').style.display = 'block';
+    }
+
+    function saveEdit() {
+        const id = document.getElementById('stuId').value;
+        const index = students.findIndex(s => s.id === id);
+
+        students[index].name = document.getElementById('stuName').value;
+        students[index].course = document.getElementById('stuCourse').value;
+        students[index].marks = parseInt(document.getElementById('stuMarks').value);
+
+        syncData("Record updated!");
+        clearForm();
+    }
+
+    // 4. DELETE: Remove object
+    function deleteStudent(id) {
+        if (confirm("Delete this record?")) {
+            students = students.filter(s => s.id !== id);
+            syncData("Record removed.");
+        }
+    }
+
+    // --- HELPER FUNCTIONS ---
+
+    function renderTable() {
+        const tbody = document.getElementById('stuTable');
+        tbody.innerHTML = students.map(s => `
+            <tr>
+                <td>${s.id}</td>
+                <td>${s.name}</td>
+                <td>${s.course}</td>
+                <td>${s.marks}</td>
+                <td>
+                    <button onclick="editStudent('${s.id}')" style="color:var(--primary); background:none; border:none; cursor:pointer">Edit</button> | 
+                    <button onclick="deleteStudent('${s.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function syncData(msg = "") {
+        localStorage.setItem('crudStudents', JSON.stringify(students));
+        renderTable();
+        if (msg) showMsg(msg, "success");
+    }
+
+    function showMsg(text, type) {
+        const m = document.getElementById('msg');
+        m.textContent = text;
+        m.className = `alert ${type}`;
+        m.style.display = 'block';
+        setTimeout(() => m.style.display = 'none', 3000);
+    }
+
+    function clearForm() {
+        document.getElementById('stuId').disabled = false;
+        document.getElementById('stuId').value = "";
+        document.getElementById('stuName').value = "";
+        document.getElementById('stuCourse').value = "";
+        document.getElementById('stuMarks').value = "";
+        document.getElementById('addBtn').style.display = 'block';
+        document.getElementById('updateBtn').style.display = 'none';
+    }
+</script>
+</body>
+</html>

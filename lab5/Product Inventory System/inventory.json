@@ -1,0 +1,5 @@
+[
+  { "id": "P001", "name": "Gaming Mouse", "category": "Electronics", "price": 45.00, "stock": 12 },
+  { "id": "P002", "name": "Office Chair", "category": "Furniture", "price": 150.00, "stock": 3 },
+  { "id": "P003", "name": "USB-C Cable", "category": "Electronics", "price": 12.99, "stock": 50 }
+]
