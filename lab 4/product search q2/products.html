@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Product Search</title>
+    <style>
+        :root { --accent: #6366f1; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; padding: 40px; display: flex; justify-content: center; }
+        
+        .search-container { width: 100%; max-width: 600px; }
+        h1 { color: #1e293b; font-size: 1.8rem; margin-bottom: 20px; }
+
+        .input-wrapper { position: relative; }
+        input { 
+            width: 100%; padding: 15px 20px; border: 2px solid var(--border); 
+            border-radius: 12px; font-size: 1rem; outline: none; transition: 0.2s;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        #results { margin-top: 20px; display: grid; gap: 12px; }
+        
+        .product-card { 
+            background: white; padding: 15px; border-radius: 10px; 
+            border: 1px solid var(--border); display: flex; 
+            justify-content: space-between; align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .product-info h3 { margin: 0; font-size: 1.1rem; color: #334155; }
+        .product-info span { font-size: 0.85rem; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; }
+        
+        .price { font-weight: bold; color: var(--accent); font-size: 1.2rem; }
+
+        .status-msg { text-align: center; padding: 20px; color: #64748b; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <h1>Product Search</h1>
+    <div class="input-wrapper">
+        <input type="text" id="searchInput" placeholder="Search by name or category (e.g. 'Electronics')...">
+    </div>
+
+    <div id="results">
+        </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('results');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+
+        // Clear UI if input is empty
+        if (query === "") {
+            resultsContainer.innerHTML = "";
+            return;
+        }
+
+        // Show loading
+        resultsContainer.innerHTML = '<div class="status-msg">Searching products...</div>';
+
+        // Debouncing: Only execute search after user stops typing for 400ms
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchProducts(query);
+        }, 400);
+    });
+
+    async function fetchProducts(query) {
+        try {
+            const response = await fetch('products.json');
+            
+            if (!response.ok) throw new Error("Failed to load products.");
+
+            const products = await response.json();
+
+            // Filter logic: matches name OR category
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.category.toLowerCase().includes(query)
+            );
+
+            displayResults(filtered);
+
+        } catch (error) {
+            resultsContainer.innerHTML = `<div class="status-msg error">Error: ${error.message}</div>`;
+        }
+    }
+
+    function displayResults(matches) {
+        // Handle "No results found"
+        if (matches.length === 0) {
+            resultsContainer.innerHTML = '<div class="status-msg">No products found matching your search.</div>';
+            return;
+        }
+
+        // Render Cards
+        resultsContainer.innerHTML = matches.map(product => `
+            <div class="product-card">
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <span>${product.category}</span>
+                </div>
+                <div class="price">$${product.price.toFixed(2)}</div>
+            </div>
+        `).join('');
+    }
+</script>
+
+</body>
+</html>

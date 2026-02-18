@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .error {
+            color: red;
+        }
+        .spinner {
+            font-weight: bold;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Weather Information Dashboard</h2>
+
+<input type="text" id="cityInput" placeholder="Enter city name">
+<button onclick="getWeather()">Search</button>
+
+<div id="result"></div>
+
+<script>
+
+let lastCityCache = null;  // Cache variable
+
+function getWeather() {
+
+    const city = document.getElementById("cityInput").value.trim();
+    const resultDiv = document.getElementById("result");
+
+    if(city === "") {
+        resultDiv.innerHTML = "<span class='error'>Please enter a city name</span>";
+        return;
+    }
+
+    // Show loading spinner
+    resultDiv.innerHTML = "<div class='spinner'>Loading...</div>";
+
+    // Check cache first
+    if(lastCityCache && lastCityCache.name.toLowerCase() === city.toLowerCase()) {
+        displayWeather(lastCityCache);
+        return;
+    }
+
+    const apiKey = "a012b4f731e94a45a83a3d913fd673c9";
+
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+    .then(response => {
+
+        if(!response.ok) {
+            throw new Error("City not found or network error");
+        }
+
+        return response.json();
+    })
+    .then(data => {
+
+        lastCityCache = data;  // Store in cache
+        displayWeather(data);
+
+    })
+    .catch(error => {
+        resultDiv.innerHTML = `<span class='error'>${error.message}</span>`;
+    });
+}
+
+function displayWeather(data) {
+
+    const resultDiv = document.getElementById("result");
+
+    resultDiv.innerHTML = `
+        <h3>${data.name}</h3>
+        <p><strong>Temperature:</strong> ${data.main.temp} °C</p>
+        <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
+        <p><strong>Condition:</strong> ${data.weather[0].description}</p>
+    `;
+}
+
+</script>
+
+</body>
+</html>

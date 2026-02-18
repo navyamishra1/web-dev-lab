@@ -1,0 +1,12 @@
+[
+  { "id": "101", "name": "Alice Johnson", "dept": "Computer Science", "marks": 85 },
+  { "id": "102", "name": "Bob Smith", "dept": "Electrical Engineering", "marks": 78 },
+  { "id": "103", "name": "Charlie Davis", "dept": "Mechanical Engineering", "marks": 92 },
+  { "id": "104", "name": "Diana Prince", "dept": "Physics", "marks": 88 },
+  { "id": "105", "name": "Evan Wright", "dept": "Computer Science", "marks": 74 },
+  { "id": "106", "name": "Fiona Gallagher", "dept": "Mathematics", "marks": 95 },
+  { "id": "107", "name": "George Miller", "dept": "Civil Engineering", "marks": 67 },
+  { "id": "108", "name": "Hannah Abbott", "dept": "Chemistry", "marks": 81 },
+  { "id": "109", "name": "Ian Wright", "dept": "Computer Science", "marks": 89 },
+  { "id": "110", "name": "Jasmine Kaur", "dept": "Biotechnology", "marks": 93 }
+]

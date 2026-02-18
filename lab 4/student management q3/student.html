@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student CRUD System (AJAX)</title>
+    <style>
+        :root { --primary: #2563eb; --success: #059669; --danger: #dc2626; --bg: #f3f4f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 2rem; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        /* Form Styling */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        input, select { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        .btn-group { grid-column: span 2; display: flex; gap: 10px; }
+        
+        button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; }
+        .btn-add { background: var(--primary); }
+        .btn-update { background: #8b5cf6; display: none; }
+        .btn-cancel { background: #6b7280; display: none; }
+
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; color: #4b5563; }
+        .actions { display: flex; gap: 8px; }
+        .edit-btn { color: var(--primary); background: none; border: 1px solid var(--primary); padding: 4px 8px; }
+        .del-btn { color: var(--danger); background: none; border: 1px solid var(--danger); padding: 4px 8px; }
+
+        /* Notification */
+        #alert { padding: 10px; border-radius: 6px; margin-bottom: 1rem; display: none; text-align: center; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Student Management System</h2>
+    <div id="alert"></div>
+
+    <form id="studentForm">
+        <div class="form-grid">
+            <input type="text" id="stuId" placeholder="Student ID (e.g. 101)" required>
+            <input type="text" id="stuName" placeholder="Full Name" required>
+            <input type="text" id="stuDept" placeholder="Department" required>
+            <input type="number" id="stuMarks" placeholder="Marks" required min="0" max="100">
+            <div class="btn-group">
+                <button type="submit" id="addBtn" class="btn-add">Add Student</button>
+                <button type="button" id="updateBtn" class="btn-update">Update Student</button>
+                <button type="button" id="cancelBtn" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </form>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Marks</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="studentTable">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    let students = [];
+    const form = document.getElementById('studentForm');
+    const tableBody = document.getElementById('studentTable');
+    const alertBox = document.getElementById('alert');
+
+    // UI Elements for toggling
+    const addBtn = document.getElementById('addBtn');
+    const updateBtn = document.getElementById('updateBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // 1. READ: Initial Fetch
+    async function init() {
+        try {
+            const response = await fetch('students.json');
+            if (response.status === 404) throw new Error("Database file not found (404)");
+            if (response.status === 500) throw new Error("Server side error (500)");
+            
+            students = await response.json();
+            showAlert("Data loaded successfully!", "success");
+            renderTable();
+        } catch (err) {
+            showAlert(err.message, "error");
+        }
+    }
+
+    // 2. CREATE: Add New
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        const newStu = {
+            id: document.getElementById('stuId').value,
+            name: document.getElementById('stuName').value,
+            dept: document.getElementById('stuDept').value,
+            marks: document.getElementById('stuMarks').value
+        };
+
+        // Check if ID exists
+        if (students.find(s => s.id === newStu.id)) {
+            showAlert("Error: Student ID must be unique!", "error");
+            return;
+        }
+
+        students.push(newStu);
+        showAlert("Student added successfully!", "success");
+        renderTable();
+        form.reset();
+    };
+
+    // 3. DELETE
+    function deleteStudent(id) {
+        if (confirm("Are you sure?")) {
+            students = students.filter(s => s.id != id);
+            showAlert("Record deleted.", "success");
+            renderTable();
+        }
+    }
+
+    // 4. UPDATE: Step 1 - Load into form
+    function editStudent(id) {
+        const s = students.find(stu => stu.id == id);
+        document.getElementById('stuId').value = s.id;
+        document.getElementById('stuId').disabled = true; // Protect ID during edit
+        document.getElementById('stuName').value = s.name;
+        document.getElementById('stuDept').value = s.dept;
+        document.getElementById('stuMarks').value = s.marks;
+
+        addBtn.style.display = 'none';
+        updateBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+    }
+
+    // UPDATE: Step 2 - Save changes
+    updateBtn.onclick = () => {
+        const id = document.getElementById('stuId').value;
+        const index = students.findIndex(s => s.id == id);
+        
+        students[index] = {
+            id: id,
+            name: document.getElementById('stuName').value,
+            dept: document.getElementById('stuDept').value,
+            marks: document.getElementById('stuMarks').value
+        };
+
+        resetForm();
+        showAlert("Record updated!", "success");
+        renderTable();
+    };
+
+    // Utility: Render Table
+    function renderTable() {
+        tableBody.innerHTML = students.map(s => `
+            <tr>
+                <td>${s.id}</td>
+                <td>${s.name}</td>
+                <td>${s.dept}</td>
+                <td>${s.marks}</td>
+                <td class="actions">
+                    <button class="edit-btn" onclick="editStudent('${s.id}')">Edit</button>
+                    <button class="del-btn" onclick="deleteStudent('${s.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Utility: Notifications
+    function showAlert(msg, type) {
+        alertBox.textContent = msg;
+        alertBox.className = `alert-${type}`;
+        alertBox.style.display = 'block';
+        setTimeout(() => alertBox.style.display = 'none', 3000);
+    }
+
+    function resetForm() {
+        form.reset();
+        document.getElementById('stuId').disabled = false;
+        addBtn.style.display = 'inline-block';
+        updateBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+
+    cancelBtn.onclick = resetForm;
+
+    // Start App
+    init();
+</script>
+
+</body>
+</html>
