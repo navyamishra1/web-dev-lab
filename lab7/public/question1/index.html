@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Student Notes Manager</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f2f2f2;
+padding:40px;
+}
+
+.container{
+max-width:600px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+input, textarea{
+width:100%;
+padding:10px;
+margin:10px 0;
+}
+
+button{
+padding:8px 12px;
+margin:5px;
+background:#007bff;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:4px;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.note{
+background:#fafafa;
+padding:12px;
+margin-top:10px;
+border-left:4px solid #007bff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Add Note</h2>
+
+<input id="title" placeholder="Title">
+
+<input id="subject" placeholder="Subject">
+
+<textarea id="desc" placeholder="Description"></textarea>
+
+<button onclick="addNote()">Save Note</button>
+
+<h2>Notes</h2>
+
+<div id="notes"></div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
